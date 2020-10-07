@@ -1,0 +1,9 @@
+{
+    "event_id": "templater_global_data",
+    "execute_order": 10,
+    "callback_class": "Hampel\\ItemsThisPage\\Listener",
+    "callback_method": "templaterGlobalData",
+    "active": true,
+    "hint": "",
+    "description": "Add itemsThisPage to global template data"
+}
