@@ -12,12 +12,19 @@ class Listener
 			switch ($template)
 			{
 				case 'thread_view': // fall through
+				case 'thread_view_type_article':
+				case 'thread_view_type_poll':
+				case 'thread_view_type_question':
+				case 'thread_view_type_suggestion':
 				case 'xfrm_thread_view_type_resource':
 
 					$data['itemsThisPage'] = self::itemsPerPage($params['page'], $params['totalPosts'], $params['perPage']);
 					break;
 
 				case 'forum_view': // fall through
+				case 'forum_view_type_article':
+				case 'forum_view_type_question':
+				case 'forum_view_type_suggestion':
 				case 'find_threads_list':
 				case 'watched_threads_list':
 				case 'member_list':
