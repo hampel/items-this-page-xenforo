@@ -1,0 +1,17 @@
+{
+    "legacy_addon_id": "",
+    "title": "Items This Page",
+    "description": "Add a new template variable $xf.itemsPerPage containing how many posts/media items/resources/etc are shown on a page",
+    "version_id": 1000070,
+    "version_string": "1.0.0",
+    "dev": "Simon Hampel",
+    "dev_url": "https://bitbucket.org/hampel/",
+    "faq_url": "",
+    "support_url": "https://bitbucket.org/hampel/items-this-page-xenforo/issues",
+    "extra_urls": {
+        "Git Repository": "https://bitbucket.org/hampel/items-this-page-xenforo",
+        "Twitter": "https://twitter.com/SimonHampel"
+    },
+    "require": [],
+    "icon": "fa-align-justify"
+}
