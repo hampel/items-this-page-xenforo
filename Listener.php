@@ -18,7 +18,7 @@ class Listener
 				case 'thread_view_type_suggestion':
 				case 'xfrm_thread_view_type_resource':
 
-					$data['itemsThisPage'] = self::itemsPerPage($params['page'], $params['totalPosts'], $params['perPage']);
+					$data['itemsThisPage'] = self::itemsThisPage($params['page'], $params['totalPosts'], $params['perPage']);
 					break;
 
 				case 'forum_view': // fall through
@@ -34,7 +34,7 @@ class Listener
 				case 'xfrm_latest_reviews':
 				case 'xfrm_author_view':
 
-					$data['itemsThisPage'] = self::itemsPerPage($params['page'], $params['total'], $params['perPage']);
+					$data['itemsThisPage'] = self::itemsThisPage($params['page'], $params['total'], $params['perPage']);
 					break;
 
 				case 'xfmg_media_index': // fall through
@@ -44,7 +44,7 @@ class Listener
 				case 'xfmg_media_user_index':
 				case 'xfmg_album_user_index':
 
-					$data['itemsThisPage'] = self::itemsPerPage($params['page'], $params['totalItems'], $params['perPage']);
+					$data['itemsThisPage'] = self::itemsThisPage($params['page'], $params['totalItems'], $params['perPage']);
 					break;
 
 				default:
@@ -53,7 +53,7 @@ class Listener
 		}
 	}
 
-	public static function itemsPerPage($page, $total, $perPage)
+	public static function itemsThisPage($page, $total, $perPage)
 	{
 		if ($total == 0)
 		{
