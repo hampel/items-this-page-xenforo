@@ -1,7 +1,7 @@
 {
     "legacy_addon_id": "",
     "title": "Items This Page",
-    "description": "Add a new template variable $xf.itemsPerPage containing how many posts/media items/resources/etc are shown on a page",
+    "description": "Add a new template variable $xf.itemsThisPage containing how many posts/media items/resources/etc are shown on a page",
     "version_id": 1000070,
     "version_string": "1.0.0",
     "dev": "Simon Hampel",
