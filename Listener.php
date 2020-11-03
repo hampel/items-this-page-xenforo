@@ -27,6 +27,7 @@ class Listener
 				case 'forum_view_type_suggestion':
 				case 'find_threads_list':
 				case 'watched_threads_list':
+				case 'xfmg_watched_media':
 				case 'member_list':
 				case 'online_list':
 				case 'xfrm_overview':
