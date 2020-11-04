@@ -80,10 +80,21 @@ class Listener
 					$data['itemsThisPage'] = self::itemsThisPage($params['page'], $findNew->getResultCount(), $params['perPage']);
 					break;
 
-				case 'news_feed':
+				case 'news_feed':  // fall through
+				case 'latest_activity':
 
 					$data['itemsThisPage'] = $params['newsFeedItems'] instanceof ArrayCollection ? $params['newsFeedItems']->count() : 0;
 					break;
+
+				case 'tag_view':
+					$data['itemsThisPage'] = self::itemsThisPage($params['page'], $params['totalResults'], $params['perPage']);
+					break;
+
+				case 'search_results':
+
+					$data['itemsThisPage'] = self::itemsThisPage($params['page'], count($params['results']), $params['perPage']);
+					break;
+
 
 				default:
 					break;
