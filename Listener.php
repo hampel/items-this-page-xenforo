@@ -42,6 +42,11 @@ class Listener
 					$data['itemsThisPage'] = self::itemsThisPage($params['page'], $params['total'], $params['perPage']);
 					break;
 
+				case 'watched_forums_list':
+
+					$data['itemsThisPage'] = $params['watchedForums'] instanceof ArrayCollection ? $params['watchedForums']->count() : 0;
+					break;
+
 				case 'xfmg_media_index': // fall through
 				case 'xfmg_media_view':
 				case 'xfmg_category_view':
@@ -50,6 +55,17 @@ class Listener
 				case 'xfmg_album_user_index':
 
 					$data['itemsThisPage'] = self::itemsThisPage($params['page'], $params['totalItems'], $params['perPage']);
+					break;
+
+				case 'xfmg_watched_albums':
+
+					$data['itemsThisPage'] = $params['albums'] instanceof ArrayCollection ? $params['albums']->count() : 0;
+					break;
+
+				case 'xfmg_watched_categories': // fall through
+				case 'xfrm_watched_categories':
+
+					$data['itemsThisPage'] = $params['watchedCategories'] instanceof ArrayCollection ? $params['watchedCategories']->count() : 0;
 					break;
 
 				case 'whats_new_posts': // fall through
