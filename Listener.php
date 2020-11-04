@@ -1,6 +1,8 @@
 <?php namespace Hampel\ItemsThisPage;
 
 use XF\Entity\FindNew;
+use XF\Mvc\Entity\ArrayCollection;
+
 class Listener
 {
 	public static function templaterGlobalData(\XF\App $app, array &$data, $reply)
@@ -59,6 +61,11 @@ class Listener
 					$findNew = $params['findNew'];
 
 					$data['itemsThisPage'] = self::itemsThisPage($params['page'], $findNew->getResultCount(), $params['perPage']);
+					break;
+
+				case 'news_feed':
+
+					$data['itemsThisPage'] = $params['newsFeedItems'] instanceof ArrayCollection ? $params['newsFeedItems']->count() : 0;
 					break;
 
 				default:
