@@ -1,5 +1,6 @@
 <?php namespace Hampel\ItemsThisPage;
 
+use XF\Entity\FindNew;
 class Listener
 {
 	public static function templaterGlobalData(\XF\App $app, array &$data, $reply)
@@ -46,6 +47,18 @@ class Listener
 				case 'xfmg_album_user_index':
 
 					$data['itemsThisPage'] = self::itemsThisPage($params['page'], $params['totalItems'], $params['perPage']);
+					break;
+
+				case 'whats_new_posts': // fall through
+				case 'xfmg_whats_new_media':
+				case 'xfmg_whats_new_media_comments':
+				case 'xfrm_whats_new_resources':
+				case 'whats_new_profile_posts':
+
+					/** @var FindNew $findNew */
+					$findNew = $params['findNew'];
+
+					$data['itemsThisPage'] = self::itemsThisPage($params['page'], $findNew->getResultCount(), $params['perPage']);
 					break;
 
 				default:
