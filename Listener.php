@@ -37,6 +37,7 @@ class Listener
 				case 'xfrm_category_view':
 				case 'xfrm_latest_reviews':
 				case 'xfrm_author_view':
+				case 'xfrm_watched_resources':
 
 					$data['itemsThisPage'] = self::itemsThisPage($params['page'], $params['total'], $params['perPage']);
 					break;
