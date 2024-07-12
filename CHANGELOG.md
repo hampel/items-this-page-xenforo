@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+1.1.1 (2024-07-12)
+------------------
+
+* code cleanup - no changes in functionality
+
 1.1.0 (2020-11-05)
 ------------------
 
