@@ -7,10 +7,10 @@
     "dev": "Simon Hampel",
     "dev_url": "https://xenforo.com/community/members/sim.4264/",
     "faq_url": "",
-    "support_url": "https://bitbucket.org/hampel/items-this-page-xenforo/issues",
+    "support_url": "https://xenforo.com/community/threads/items-this-page.186224/",
     "extra_urls": {
-        "Git Repository": "https://bitbucket.org/hampel/items-this-page-xenforo",
-        "Twitter": "https://twitter.com/SimonHampel"
+        "Addon": "https://xenforo.com/community/resources/items-this-page.8076/",
+        "Git Repository": "https://bitbucket.org/hampel/items-this-page-xenforo"
     },
     "require": [],
     "icon": "fa-align-justify"
