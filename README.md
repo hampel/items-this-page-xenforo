@@ -9,3 +9,5 @@ More information here: [Items This Page](https://xenforo.com/community/resources
 
 By [Simon Hampel](https://xenforo.com/community/members/sim.4264/).
 
+* [Addon: Items This Page](https://xenforo.com/community/resources/items-this-page.8076/)
+* [Discussion and support: Items This Page](https://xenforo.com/community/threads/items-this-page.186224/)
