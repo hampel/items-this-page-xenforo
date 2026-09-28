@@ -88,8 +88,21 @@ installed add-ons can vendor their own PHPUnit through `composer_autoload`; unis
 wins on the class loader and the run dies before the first test with an error about PHPUnit
 internals.
 
-**Only the arithmetic is tested.** `ListenerTest` covers `itemsThisPage()`; nothing exercises the
-template switch or checks that the param names still exist in the current XF, XFMG and XFRM.
+There are three test classes, and they prove different things:
+
+- **`ListenerTest`** covers the `itemsThisPage()` arithmetic alone.
+- **`TemplateSwitchTest`** calls the listener with `View` replies built in memory, one case per
+  group of templates, plus the guards that must leave the variable unset. Its `setUp()` calls
+  `setAppClassType('public')`: the framework boots `XF\App`, and without that the listener's
+  `instanceof \XF\Pub\App` guard skips every case.
+- **`RouteTest`** dispatches real forum and thread pages against the install's data and checks the
+  listener's answer against the threads or posts the reply carries. **It is the only test that
+  fails when XenForo renames a view param** — with the same `ErrorException` a live page would
+  throw. It skips on an install without the data, and runs inside `UsesDatabaseTransactions`
+  because viewing a thread logs a view.
+
+XFMG and XFRM pages are covered only by `TemplateSwitchTest`: `$addonsToLoad` keeps those add-ons'
+routes out of the suite.
 
 ## Release packaging
 
