@@ -117,5 +117,5 @@ means updating both:
   a dot, but not the files inside one, so `.phpunit.cache/` is recreated in the zip without it.
 - **`git archive`** (GitHub's "Download ZIP") — `export-ignore` entries in `.gitattributes`.
 
-Machine-specific notes go in `CLAUDE.local.md`, which should be gitignored; this file carries
+Machine-specific notes go in `CLAUDE.local.md`, which is gitignored; this file carries
 nothing that would not hold for any clone.
