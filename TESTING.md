@@ -83,17 +83,43 @@ Renaming `totalPosts` or the forum's `total` in the listener fails `RouteTest` w
 `ErrorException` a live page would throw. Copy the file aside and back to repeat one —
 `git checkout` would also discard uncommitted work.
 
+### The rendered page, in a disposable install
+
+**The suite checks the number the listener computes; this checks the number a page prints**, on
+Media Gallery and Resource Manager pages the suite cannot dispatch, and after an upgrade from the
+published release rather than on a working copy. It writes threads, a resource, two options and a
+template modification, so run it only on a throwaway XenForo with development mode off.
+
+1. Install the last published release from its zip, then upgrade to the new one from its zip. The
+   upgrade output must say `Importing add-on data`, not `All data imported`. Run the job queue.
+2. As the admin, create in forum 2 one sticky thread, six normal threads, and a thread with four
+   replies; one resource in a new Resource Manager category. Set `discussionsPerPage` and
+   `messagesPerPage` to 2.
+3. Add a public template modification on `PAGE_CONTAINER`: `str_replace`, find `</body>`, replace
+   `<!--ITP[{$xf.itemsThisPage}]-->$0`. Run the job queue so the template recompiles.
+4. Fetch each route as a guest and read the number between `ITP[` and `]`.
+
+| route | expect |
+|---|---|
+| `forums/2/`, `page-2`, `page-3` | 3, 2, 2 — the sticky counts on page 1 only |
+| the four-reply thread, pages 1–3 | 2, 2, 1 |
+| `online/` | 1 |
+| `resources/` | 1 |
+| `media/` | 0 — an empty gallery still passes its params |
+| `whats-new/posts/` | 2 |
+| `help/` | empty — not in the switch, so nothing is printed |
+
+Then `xf_error_log` must hold nothing from the add-on, and no page may contain `Fatal error:`,
+`Stack trace:` or `An exception occurred`.
+
+Run for 1.1.3 on XF 2.2.19 with XFMG 2.2.6 and XFRM 2.2.5, and on XF 2.3.13 with XFMG and XFRM
+2.3.13, upgrading from 1.1.1: exactly the expected numbers on both, and nothing logged.
+
 ## Needs a human
 
-The suite checks the number the listener computes, never a rendered page, and dispatches only core
-forum and thread pages. On a throwaway board with a template temporarily edited to print
-`{$xf.itemsThisPage}`:
+The disposable-install check above covers the upgrade and the pages it lists. Still unchecked:
 
-- [ ] Page 1 of a forum with sticky threads — the count includes them; page 2 does not.
-- [ ] A thread's first and last pages, and an article thread's second page.
-- [ ] One page each from Media Gallery and Resource Manager, where installed — the suite covers
-      those only with replies built in memory.
-- [ ] `whats-new/posts/` and `search/` results — not dispatched by the suite, because both write a
-      result set to the database.
-- [ ] A page not in the switch prints nothing rather than 0 or an error.
-- [ ] Upgrade from the last published release on XF 2.2 and 2.3: no new server error is logged.
+- [ ] An article or question thread's second page, where the pinned first post is shown again —
+      the count is expected to leave it out (see *Fragile points*); confirm that is still true.
+- [ ] `search/` results — a search is a POST, so the check above does not reach it.
+- [ ] A Media Gallery page with media in it — the check above only proves the empty case.
