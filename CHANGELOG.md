@@ -1,8 +1,14 @@
 # CHANGELOG
 
+## 1.1.3 (2026-09-28)
+
+- `$xf.itemsThisPage` now includes sticky threads on the first page of a forum — they are shown in addition to the paginated threads, so page 1 was short by the number of stickies
+- requires XenForo 2.2.0 or later; earlier releases declared no minimum, and installed on XenForo 2.0 and 2.1 without having been tested there
+- the release no longer includes a `.phpunit.cache` directory, which 1.1.1 shipped by mistake
+
 ## 1.1.2 (2025-12-12)
 
-- run enqueuePostUpgradeCleanUp during upgrades if we're running XF2.3+
+- run `enqueuePostUpgradeCleanUp()` during upgrades on XenForo 2.3 and later
 
 ## 1.1.1 (2024-07-12)
 
