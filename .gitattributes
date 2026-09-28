@@ -1,3 +1,5 @@
+* text=auto eol=lf
+
 /CLAUDE.md        export-ignore
 /CLAUDE.local.md  export-ignore
 /TESTING.md       export-ignore
