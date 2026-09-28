@@ -27,7 +27,7 @@ cases are grouped rather than uniform:
 | templates | count comes from |
 |---|---|
 | thread views | `itemsThisPage(page, totalPosts, perPage)` |
-| forum views, member and online lists, most XFRM lists | `itemsThisPage(page, total, perPage)` |
+| forum views, member and online lists, most XFRM lists | `itemsThisPage(page, total, perPage)`, plus `stickyThreads` on forum page 1 |
 | XFMG media and album lists | `itemsThisPage(page, totalItems, perPage)` |
 | `whats_new_*` | `itemsThisPage(page, findNew->getResultCount(), perPage)` |
 | `tag_view`, `search_results` | `totalResults`, and `count(results)` respectively |

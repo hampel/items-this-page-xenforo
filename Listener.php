@@ -1,6 +1,7 @@
 <?php namespace Hampel\ItemsThisPage;
 
 use XF\Entity\FindNew;
+use XF\Mvc\Entity\AbstractCollection;
 use XF\Mvc\Entity\ArrayCollection;
 
 class Listener
@@ -40,6 +41,12 @@ class Listener
 				case 'xfrm_watched_resources':
 
 					$data['itemsThisPage'] = self::itemsThisPage($params['page'], $params['total'], $params['perPage']);
+
+					// sticky threads are shown on page 1 in addition to the paginated threads, and are not in the total
+					if (isset($params['stickyThreads']) && $params['stickyThreads'] instanceof AbstractCollection)
+					{
+						$data['itemsThisPage'] += $params['stickyThreads']->count();
+					}
 					break;
 
 				case 'watched_forums_list':
