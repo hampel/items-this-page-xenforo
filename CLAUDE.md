@@ -69,8 +69,9 @@ overwrites `_output/` from the database. `xf-addon:export` is the scoped equival
 
 ### Tests
 
-PHPUnit 10 via `hampel/xenforo-test-framework` ^3.0, which needs PHP 8.1+. Composer is for the
-tests only — the add-on has no runtime dependency, and `vendor/` is gitignored.
+PHPUnit 12 via `hampel/xenforo-test-framework` ^5.9. Composer is for the tests only — the add-on
+has no runtime dependency, and `vendor/` is gitignored. **The suite needs PHP 8.3; that constraint
+is `tests/` only.** Runtime code still has the PHP 7.0 floor above.
 
 ```bash
 composer install                                   # first time
@@ -78,9 +79,14 @@ vendor/bin/phpunit                                 # whole suite
 vendor/bin/phpunit --filter testItemsPerPage       # one test
 ```
 
-**Run them from this directory.** `tests/TestCase.php` boots the enclosing XenForo install through
-a relative `$rootDir` of `../../../..`, so the suite needs a working install around it and fails
-from anywhere else.
+**Run them from this directory.** The framework boots the enclosing XenForo install through
+`tests/TestCase.php`'s relative `$rootDir` of `../../../..`, so the suite needs a working install
+around it and fails from anywhere else.
+
+**`$addonsToLoad` limits the boot to this add-on, and the suite does not run without it.** Other
+installed add-ons can vendor their own PHPUnit through `composer_autoload`; unisolated, that copy
+wins on the class loader and the run dies before the first test with an error about PHPUnit
+internals.
 
 **Only the arithmetic is tested.** `ListenerTest` covers `itemsThisPage()`; nothing exercises the
 template switch or checks that the param names still exist in the current XF, XFMG and XFRM.

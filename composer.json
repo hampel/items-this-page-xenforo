@@ -1,7 +1,7 @@
 {
 	"license": "MIT",
 	"require-dev": {
-		"hampel/xenforo-test-framework": "^3.0"
+		"hampel/xenforo-test-framework": "^5.9"
 	},
     "autoload-dev": {
         "psr-4": {
