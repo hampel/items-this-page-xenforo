@@ -12,6 +12,8 @@
         "Addon": "https://xenforo.com/community/resources/items-this-page.8076/",
         "Git Repository": "https://github.com/hampel/items-this-page-xenforo"
     },
-    "require": [],
+    "require": {
+        "XF": [2020070, "XenForo 2.2.0+"]
+    },
     "icon": "fa-align-justify"
 }

@@ -11,8 +11,9 @@ inside a XenForo install. `README.md` links to the published resource and its su
 
 **There are no options, phrases, templates, template modifications or class extensions.** The only
 registered piece is a `templater_global_data` code event listener in
-`_output/code_event_listeners/`, calling `Listener::templaterGlobalData()`. `Setup.php` does nothing except enqueue XF 2.3's
-post-upgrade cleanup, behind an `\XF::$versionId` check because that method does not exist earlier.
+`_output/code_event_listeners/`, calling `Listener::templaterGlobalData()`. `Setup.php` does
+nothing except enqueue XF 2.3's post-upgrade cleanup, behind an `\XF::$versionId` check because
+that method does not exist earlier.
 
 `templaterGlobalData()` acts only on a public-side `View` reply, and switches on the reply's
 template name. **A template not named in the switch gets no `itemsThisPage` at all** — not zero —
@@ -41,11 +42,16 @@ case — or a new case if none match.
 `itemsThisPage($page, $total, $perPage)` is the pure arithmetic: `perPage` on every page but the
 last, and the remainder on the last. It is `public static` so the tests can call it directly.
 
-### No version floor is declared
+### The floor is XenForo 2.2, and that constrains the code two ways
 
-`addon.json`'s `require` is empty. The runtime code uses no scalar or return types, so it still
-parses on the PHP versions older XenForo 2 releases ran on; keep it that way unless a floor is
-added to `addon.json`.
+`addon.json` requires XF 2.2.0+ and declares no PHP version of its own, so XF 2.2's PHP 7.0
+minimum applies. Runtime code must therefore:
+
+- **run on PHP 7.0** — no nullable or `void` types, no typed properties, nothing later;
+- **name core classes by their pre-2.3 names.** XF 2.3 aliases the old names forward; XF 2.2 has
+  no alias for the new ones and fatals.
+
+The floor was undeclared until 1.1.3, so every earlier release installs on any XenForo 2.
 
 ## Commands
 
