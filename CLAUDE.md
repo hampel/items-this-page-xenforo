@@ -110,9 +110,11 @@ routes out of the suite.
 means updating both:
 
 - **The XenForo release zip** — `build.json` deletes the dev-only files from the build (Composer
-  files, `phpunit.xml`, `tests/`, `vendor/`, `TESTING.md`, both Claude files), then **moves every
-  remaining root `*.md` to the zip root**. A new file that must not ship needs its own `rm -fv`
-  line placed before that `mv`, or it lands at the zip root where a downloader sees it first.
+  files, `phpunit.xml`, `tests/`, `vendor/`, the PHPUnit caches, `TESTING.md`, both Claude files),
+  then **moves every remaining root `*.md` to the zip root**. A new file that must not ship needs
+  its own `rm -fv` line placed before that `mv`, or it lands at the zip root where a downloader sees
+  it first. **A dot-directory needs one too**: the builder skips an entry whose own name starts with
+  a dot, but not the files inside one, so `.phpunit.cache/` is recreated in the zip without it.
 - **`git archive`** (GitHub's "Download ZIP") — `export-ignore` entries in `.gitattributes`.
 
 Machine-specific notes go in `CLAUDE.local.md`, which should be gitignored; this file carries
