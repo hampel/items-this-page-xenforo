@@ -73,6 +73,14 @@ PHPUnit 12 via `hampel/xenforo-test-framework` ^5.9. Composer is for the tests o
 has no runtime dependency, and `vendor/` is gitignored. **The suite needs PHP 8.3; that constraint
 is `tests/` only.** Runtime code still has the PHP 7.0 floor above.
 
+**`phpunit/phpunit` is pinned to `^12.0` in `require-dev`, on purpose** (2026-10-12). The framework
+accepts PHPUnit 10, 11 or 12, so without the pin its range picks the major, and this suite only
+works on 12: `phpunit.xml` sets `failOnPhpunitDeprecation`, which PHPUnit 10.5 rejects as invalid
+configuration. On a forum where several add-ons vendor PHPUnit, a stable major also keeps this one
+out of a version clash. Widen the pin when the suite is deliberately moved to a newer major, not
+before. `phpunit.xml` otherwise follows the framework's shipped copy, except that it declares no
+`Feature` suite — there are no feature tests, and an empty suite would only look like coverage.
+
 ```bash
 composer install                                   # first time
 vendor/bin/phpunit                                 # whole suite
