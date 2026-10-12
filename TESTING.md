@@ -150,41 +150,74 @@ Resource Manager 2.2.0 to 2.3.13: every name present in all of them.
 
 ### The rendered page, in a disposable install
 
-**The suite checks the number the listener computes; this checks the number a page prints**, on
-Media Gallery and Resource Manager pages the suite cannot dispatch, and after an upgrade from the
-published release rather than on a working copy. It writes threads, a resource, two options and a
-template modification, so run it only on a throwaway XenForo with development mode off.
+**The suite checks the number XenForo is given; this checks the number a page prints**, with real
+content on Media Gallery and Resource Manager pages, and after an upgrade from the published
+release rather than on a working copy. It writes content, two options and a template modification,
+so run it only on a throwaway XenForo with development mode off.
 
 1. Install the last published release from its zip, then upgrade to the new one from its zip. The
    upgrade output must say `Importing add-on data`, not `All data imported`. Run the job queue.
-2. As the admin, create in forum 2 one sticky thread, six normal threads, and a thread with four
-   replies; one resource in a new Resource Manager category. Set `discussionsPerPage` and
+2. Check the upgrade left both listeners registered and active, and nothing in `xf_error_log`. On a
+   forum with no add-on defining `hampel_admin_api_redaction`, that listener's row is still
+   written; the event is never fired, and the forum must render as before.
+3. Make the content: a forum with one sticky thread and at least six others, a thread with four
+   replies, and, where they are installed, a few resources in a Resource Manager category and a
+   few media items in a Media Gallery category and a public album. Make it through XenForo's own
+   services or a seeding tool, never by inserting rows. Set `discussionsPerPage` and
    `messagesPerPage` to 2.
-3. Add a public template modification on `PAGE_CONTAINER`: `str_replace`, find `</body>`, replace
+4. Add a public template modification on `PAGE_CONTAINER`: `str_replace`, find `</body>`, replace
    `<!--ITP[{$xf.itemsThisPage}]-->$0`. Run the job queue so the template recompiles.
-4. Fetch each route as a guest and read the number between `ITP[` and `]`.
+5. Fetch each route as a guest. Read the number between `ITP[` and `]`, and count the items in the
+   same page's HTML. **The two must be equal on every page**, which needs no expected numbers:
 
-| route | expect |
+| page | count this in the HTML |
 |---|---|
-| `forums/2/`, `page-2`, `page-3` | 3, 2, 2 — the sticky counts on page 1 only |
-| the four-reply thread, pages 1–3 | 2, 2, 1 |
-| `online/` | 1 |
-| `resources/` | 1 |
-| `media/` | 0 — an empty gallery still passes its params |
-| `whats-new/posts/` | 2 |
-| `help/` | empty — not in the switch, so nothing is printed |
+| a forum, and What's New posts | `class="structItem structItem--thread` |
+| a thread | `<article class="message message--post` |
+| the resource overview, a resource category, What's New resources | `class="structItem structItem--resource` |
+| the media index, a media category, What's New media | `class="itemList-item js-inlineModContainer` |
 
-Then `xf_error_log` must hold nothing from the add-on, and no page may contain `Fatal error:`,
-`Stack trace:` or `An exception occurred`.
+The forum with the sticky thread must read one more on page 1 than the page size, and the page
+size or less after it. `help/`, which is not in the switch, must print nothing between the
+brackets. No page may contain `Fatal error:`, `Stack trace:` or `An exception occurred`.
 
-Run for 1.1.3 on XF 2.2.19 with XFMG 2.2.6 and XFRM 2.2.5, and on XF 2.3.13 with XFMG and XFRM
-2.3.13, upgrading from 1.1.1: exactly the expected numbers on both, and nothing logged.
+**Run for 1.1.4, upgrading from 1.1.1**, on XenForo 2.2.19 with Media Gallery 2.2.6 and Resource
+Manager 2.2.5, and on XenForo 2.3.13 with both at 2.3.13. The upgrade took the real path on both,
+both listeners were registered, and nothing was logged. Printed count and HTML count, equal on
+every page:
+
+| page | XenForo 2.2.19 | XenForo 2.3.13 |
+|---|---|---|
+| forum with a sticky thread, pages 1 to 3 | 3, 2, 2 | not run: no sticky thread in the content |
+| forum without one, pages 1 and 2 | — | 2, 1 |
+| thread, first, middle and last page | 2, 2, 1 | 2, 2 and, on a five-post thread, 1 |
+| current visitors | 1 | 1 |
+| resource overview | 1 | 5 |
+| resource category | — | 5 |
+| latest reviews | — | 10 |
+| media index | 0, an empty gallery | 8 |
+| media category | — | 5 |
+| album index | — | 1 |
+| a media item's own page | — | 0: the item had no comments |
+| What's New: posts, media, resources | 2, —, — | 2, 7, 5 |
+| `help/` | nothing printed | nothing printed |
+
+On 2.2 the stray `.phpunit.cache/test-results` that 1.1.1 shipped stays on disk after the upgrade;
+on 2.3 the post-upgrade clean-up removes the file and leaves the empty directory. Both harmless.
 
 ## Needs a human
 
-The disposable-install check above covers the upgrade and the pages it lists. Still unchecked:
+**Nothing here needs a person to look at a page, and five kinds of page have still not been seen
+with content in them.** The count is a number, so every check on it is mechanical: the suite
+dispatches 32 of the 39 templates, and the disposable-install check above reads the printed number
+against the HTML. What is missing is content, not judgement. Each of these is covered by
+`TemplateSwitchTest` with a reply built in memory and by nothing else, and each wants adding to the
+disposable-install check when the content can be made:
 
-- [ ] An article or question thread's second page, where the pinned first post is shown again —
-      the count is expected to leave it out (see *Fragile points*); confirm that is still true.
-- [ ] `search/` results — a search is a POST, so the check above does not reach it.
-- [ ] A Media Gallery page with media in it — the check above only proves the empty case.
+- [ ] A question forum and a suggestion forum, and a thread in each.
+- [ ] A thread with a poll.
+- [ ] A media item with comments: its page counts the comments, and has only been seen with none.
+- [ ] A resource's discussion thread, which Resource Manager makes when the resource's category
+      names a forum.
+- [ ] A forum with a sticky thread on XenForo 2.3. The suite covers it there on a real reply, and
+      the rendered check covers it on 2.2; the 2.3 rendered page has not been fetched.
