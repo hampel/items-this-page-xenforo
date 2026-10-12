@@ -104,7 +104,7 @@ installed add-ons can vendor their own PHPUnit through `composer_autoload`; unis
 wins on the class loader and the run dies before the first test with an error about PHPUnit
 internals.
 
-There are four test classes, and they prove different things:
+There are five test classes, and they prove different things:
 
 - **`ListenerTest`** covers the `itemsThisPage()` arithmetic alone.
 - **`TemplateSwitchTest`** calls the listener with `View` replies built in memory, one case per
@@ -116,6 +116,10 @@ There are four test classes, and they prove different things:
   fails when XenForo renames a view param** — with the same `ErrorException` a live page would
   throw. It skips on an install without the data, and runs inside `UsesDatabaseTransactions`
   because viewing a thread logs a view.
+- **`SwitchTemplatesTest`** requires every template named in the switch to exist among the
+  installed master templates, reading the names out of `Listener.php`. **It is the only test that
+  fails when XenForo, XFMG or XFRM renames a template**, and it only knows the versions installed
+  where it runs — `TESTING.md` has the check for a release not installed yet.
 - **`SecretsDeclarationTest`** holds the secrets declaration against `_output/options/`. It passes
   trivially while the add-on has no options, and exists for the day it gains one.
 

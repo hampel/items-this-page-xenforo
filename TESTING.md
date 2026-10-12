@@ -26,7 +26,8 @@ installed.
 
 **A template the switch does not name gets no variable at all — not zero.** The list is hard-coded,
 so a template renamed in a XenForo, XFMG or XFRM release silently stops getting it, and a new list
-page never gets it until it is added.
+page never gets it until it is added. `SwitchTemplatesTest` and the release check under *Automated*
+catch the rename; nothing catches the new page.
 
 **The view params are read by name, with no existence check.** A missing key is a PHP warning, and
 XenForo turns a warning into an `ErrorException` in production as well as in debug mode — so a
@@ -54,7 +55,7 @@ fails and the variable is 0, which is correct.
 
 ```bash
 composer install
-vendor/bin/phpunit                                  # 29 tests; RouteTest may skip, see below
+vendor/bin/phpunit                                  # 33 tests; two classes may skip, see below
 vendor/bin/phpunit --order-by=random                # must also pass
 vendor/bin/phpunit --filter RouteTest --display-skipped
 ```
@@ -69,13 +70,18 @@ vendor/bin/phpunit --filter RouteTest --display-skipped
   the second is partial, runs the listener on XenForo's own reply, and requires the answer to equal
   the threads (plus stickies) or posts that reply carries. This is the test that catches a renamed
   view param. It runs inside a database transaction, because viewing a thread logs a view.
+- `SwitchTemplatesTest` — every template named in the listener's switch exists among the master
+  templates of the XenForo, Media Gallery and Resource Manager installed. It reads the names out of
+  `Listener.php`, so a new case is covered automatically. This is the test that catches a renamed
+  template, which nothing else reports: the page keeps rendering and loses the variable.
 - `SecretsDeclarationTest` — the secrets declaration names this add-on only, every secret it lists
   is an option the add-on has, any option that reads like a credential is declared or decided, and
   no `config.php` key is claimed.
 
 **`RouteTest` skips, with a stated reason, where the install lacks the data** — a forum with at
-least three threads, and a visible discussion thread with at least two replies. A skip is
-untested, not passed: read the skip list.
+least three threads, and a visible discussion thread with at least two replies.
+**`SwitchTemplatesTest` skips its Media Gallery or Resource Manager test where that add-on is not
+installed.** A skip is untested, not passed: read the skip list.
 
 **`TemplateSwitchTest` has to make the app public.** The framework boots `XF\App`, and the
 listener acts only on `XF\Pub\App`; without `setAppClassType('public')` in `setUp()` every case
@@ -88,6 +94,39 @@ Renaming `totalPosts` or the forum's `total` in the listener fails `RouteTest` w
 id, declaring an option that does not exist, claiming a `config.php` key, and adding an undeclared
 option whose name contains `ApiKey` each fail one test, a different one each time. Copy the file
 aside and back to repeat one — `git checkout` would also discard uncommitted work.
+
+### A new XenForo release, before installing it
+
+**`SwitchTemplatesTest` only knows the versions installed where it runs.** To check a release that
+is not installed anywhere yet, count the switch's template names against the master templates
+inside its zip: each full-release zip of XenForo, Media Gallery and Resource Manager carries them
+at `upload/src/addons/<XF|XFMG|XFRM>/_data/templates.xml`. Run from the add-on's root:
+
+```python
+import re, sys, zipfile, xml.etree.ElementTree as ET
+
+# usage: python3 check.py XF|XFMG|XFRM path/to/full-release.zip
+product, path = sys.argv[1], sys.argv[2]
+
+names = sorted(set(re.findall(r"case '([a-z_]+)'", open('Listener.php').read())))
+prefix = {'XFMG': 'xfmg_', 'XFRM': 'xfrm_'}
+mine = [n for n in names if (n.startswith(prefix[product]) if product in prefix
+                             else not n.startswith(('xfmg_', 'xfrm_')))]
+
+zf = zipfile.ZipFile(path)
+entry = [n for n in zf.namelist() if n.endswith(product + '/_data/templates.xml')][0]
+have = {t.get('title') for t in ET.fromstring(zf.read(entry)).iter('template')
+        if t.get('type') == 'public'}
+
+missing = [n for n in mine if n not in have]
+print(f'{product}: {len(mine) - len(missing)}/{len(mine)}', 'missing: ' + ', '.join(missing) if missing else '')
+```
+
+Expect 20/20 for XenForo, 11/11 for Media Gallery and 8/8 for Resource Manager. **Run it against an
+older release as well, as the control**: XenForo 2.1 reports 13/20 and Resource Manager 2.1 reports
+7/8, missing the thread-type and forum-type templates that 2.2 added, which is what shows the count
+can fail. Checked for 1.1.4 against XenForo 2.2.0 to 2.3.13, Media Gallery 2.1.9 to 2.3.13 and
+Resource Manager 2.2.0 to 2.3.13: every name present in all of them.
 
 ### The rendered page, in a disposable install
 
