@@ -7,13 +7,21 @@ Items This Page is a XenForo 2 add-on (`Hampel/ItemsThisPage`) that adds a templ
 page is showing. The repository root is the add-on directory, `src/addons/Hampel/ItemsThisPage/`
 inside a XenForo install. `README.md` links to the published resource and its support thread.
 
-## The whole add-on is one listener and a hard-coded list of templates
+## The whole add-on is one working listener and a hard-coded list of templates
 
-**There are no options, phrases, templates, template modifications or class extensions.** The only
-registered piece is a `templater_global_data` code event listener in
+**There are no options, phrases, templates, template modifications or class extensions.** The piece
+that does the work is a `templater_global_data` code event listener in
 `_output/code_event_listeners/`, calling `Listener::templaterGlobalData()`. `Setup.php` does
 nothing except enqueue XF 2.3's post-upgrade cleanup, behind an `\XF::$versionId` check because
 that method does not exist earlier.
+
+**A second listener, `Listener::adminApiRedaction()`, declares the add-on's secrets and has none
+to declare.** It answers `hampel_admin_api_redaction`, an event defined by a separate add-on that
+reports a forum's configuration with secrets removed. The add-on does not require that add-on:
+XenForo never fires an event nothing defines, so on a forum without it the listener is inert. **If
+an option or a `config.php` key is ever added, update the declaration in the same commit** —
+`SecretsDeclarationTest` fails on an option that reads like a credential until it is declared or
+listed as not one.
 
 `templaterGlobalData()` acts only on a public-side `View` reply, and switches on the reply's
 template name. **A template not named in the switch gets no `itemsThisPage` at all** — not zero —
@@ -96,7 +104,7 @@ installed add-ons can vendor their own PHPUnit through `composer_autoload`; unis
 wins on the class loader and the run dies before the first test with an error about PHPUnit
 internals.
 
-There are three test classes, and they prove different things:
+There are four test classes, and they prove different things:
 
 - **`ListenerTest`** covers the `itemsThisPage()` arithmetic alone.
 - **`TemplateSwitchTest`** calls the listener with `View` replies built in memory, one case per
@@ -108,6 +116,8 @@ There are three test classes, and they prove different things:
   fails when XenForo renames a view param** — with the same `ErrorException` a live page would
   throw. It skips on an install without the data, and runs inside `UsesDatabaseTransactions`
   because viewing a thread logs a view.
+- **`SecretsDeclarationTest`** holds the secrets declaration against `_output/options/`. It passes
+  trivially while the add-on has no options, and exists for the day it gains one.
 
 XFMG and XFRM pages are covered only by `TemplateSwitchTest`: `$addonsToLoad` keeps those add-ons'
 routes out of the suite.

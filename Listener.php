@@ -134,4 +134,13 @@ class Listener
 			}
 		}
 	}
+
+	/**
+	 * Declares which of this add-on's settings are secrets, for an add-on that reports a forum's
+	 * configuration. It has no options and reads nothing from config.php, so the list is empty.
+	 */
+	public static function adminApiRedaction(array &$declarations)
+	{
+		$declarations['Hampel/ItemsThisPage'] = [];
+	}
 }

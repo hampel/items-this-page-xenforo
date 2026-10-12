@@ -10,6 +10,7 @@ given as routes, not URLs — substitute your own board.
 | event | callback | does |
 |---|---|---|
 | `templater_global_data` | `Listener::templaterGlobalData` | sets `$xf.itemsThisPage` on public pages rendered from a `View` reply whose template is in its switch |
+| `hampel_admin_api_redaction` | `Listener::adminApiRedaction` | declares that the add-on has no secret settings; fires only where an add-on defining that event is installed |
 
 The variable is computed from the view params the page's controller already passed: page, per page
 and a total, a collection to count, or a What's New `FindNew` entity. Templates from XenForo Media
@@ -53,7 +54,7 @@ fails and the variable is 0, which is correct.
 
 ```bash
 composer install
-vendor/bin/phpunit                                  # 25 tests; RouteTest may skip, see below
+vendor/bin/phpunit                                  # 29 tests; RouteTest may skip, see below
 vendor/bin/phpunit --order-by=random                # must also pass
 vendor/bin/phpunit --filter RouteTest --display-skipped
 ```
@@ -68,6 +69,9 @@ vendor/bin/phpunit --filter RouteTest --display-skipped
   the second is partial, runs the listener on XenForo's own reply, and requires the answer to equal
   the threads (plus stickies) or posts that reply carries. This is the test that catches a renamed
   view param. It runs inside a database transaction, because viewing a thread logs a view.
+- `SecretsDeclarationTest` — the secrets declaration names this add-on only, every secret it lists
+  is an option the add-on has, any option that reads like a credential is declared or decided, and
+  no `config.php` key is claimed.
 
 **`RouteTest` skips, with a stated reason, where the install lacks the data** — a forum with at
 least three threads, and a visible discussion thread with at least two replies. A skip is
@@ -80,8 +84,10 @@ leaves the variable unset.
 **Mutation checks, run when each test was added.** Removing the sticky-thread addition, removing the
 public-app guard, or adding one to the What's New count each fails exactly the test aimed at it.
 Renaming `totalPosts` or the forum's `total` in the listener fails `RouteTest` with the same
-`ErrorException` a live page would throw. Copy the file aside and back to repeat one —
-`git checkout` would also discard uncommitted work.
+`ErrorException` a live page would throw. For `SecretsDeclarationTest`: declaring a second add-on's
+id, declaring an option that does not exist, claiming a `config.php` key, and adding an undeclared
+option whose name contains `ApiKey` each fail one test, a different one each time. Copy the file
+aside and back to repeat one — `git checkout` would also discard uncommitted work.
 
 ### The rendered page, in a disposable install
 
