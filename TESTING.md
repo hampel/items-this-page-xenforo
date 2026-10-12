@@ -55,7 +55,7 @@ fails and the variable is 0, which is correct.
 
 ```bash
 composer install
-vendor/bin/phpunit                                  # 33 tests; two classes may skip, see below
+vendor/bin/phpunit                                  # 65 tests; some may skip, see below
 vendor/bin/phpunit --order-by=random                # must also pass
 vendor/bin/phpunit --filter RouteTest --display-skipped
 ```
@@ -66,10 +66,22 @@ vendor/bin/phpunit --filter RouteTest --display-skipped
   template, `news_feed` with an empty array, and What's New with an in-memory `FindNew`. Three
   guards must leave the variable unset — a non-public app, a reply that is not a view, and an
   unknown template — each beside a positive control, so a case that never ran cannot pass.
-- `RouteTest` — dispatches a real forum and a real thread, two pages each with the page size set so
-  the second is partial, runs the listener on XenForo's own reply, and requires the answer to equal
-  the threads (plus stickies) or posts that reply carries. This is the test that catches a renamed
-  view param. It runs inside a database transaction, because viewing a thread logs a view.
+- `RouteTest` — dispatches real pages through XenForo's router and controllers, then asks XenForo
+  for the reply's global template data, so `templater_global_data` fires as it does for a page. It
+  never calls the listener, which makes it the test of the listener's registration as well as of
+  the view params it reads: a renamed param fails it with the `ErrorException` a live page throws.
+  The count must equal the list the reply carries. It covers 32 of the 39 templates:
+  - forum pages over two pages, with a thread made sticky for one test: counted on page 1 only;
+  - thread pages, and an article thread, whose pinned first post is not counted on page 2;
+  - an article forum, the member list, current visitors, latest activity, the news feed, new posts
+    and profile posts, watched threads and forums, find threads, a search, and a tag page;
+  - Media Gallery and Resource Manager: index, albums, a member's media and albums, a category, an
+    author, latest reviews, What's New and the watched lists, where those add-ons are installed.
+
+  It runs inside a database transaction: viewing a thread logs a view, and a search, a What's New
+  page, a tag and the sticky flag all write rows.
+  `test_every_template_in_the_switch_is_accounted_for` requires each template in the switch to be
+  dispatched or listed in `NOT_DISPATCHED` with a reason.
 - `SwitchTemplatesTest` — every template named in the listener's switch exists among the master
   templates of the XenForo, Media Gallery and Resource Manager installed. It reads the names out of
   `Listener.php`, so a new case is covered automatically. This is the test that catches a renamed
@@ -78,8 +90,12 @@ vendor/bin/phpunit --filter RouteTest --display-skipped
   is an option the add-on has, any option that reads like a credential is declared or decided, and
   no `config.php` key is claimed.
 
-**`RouteTest` skips, with a stated reason, where the install lacks the data** — a forum with at
-least three threads, and a visible discussion thread with at least two replies.
+**`RouteTest` skips, with a stated reason, where the install lacks the data** — a discussion forum
+with at least three threads, a discussion thread with at least two replies, an article forum and an
+article thread with a reply, a thread to search for and to tag, and Media Gallery or Resource
+Manager for their pages. **Where those two are installed and empty, their tests pass on a count of
+0 against an empty list**: that proves the view params exist under the names the listener reads,
+and nothing more.
 **`SwitchTemplatesTest` skips its Media Gallery or Resource Manager test where that add-on is not
 installed.** A skip is untested, not passed: read the skip list.
 
@@ -90,10 +106,14 @@ leaves the variable unset.
 **Mutation checks, run when each test was added.** Removing the sticky-thread addition, removing the
 public-app guard, or adding one to the What's New count each fails exactly the test aimed at it.
 Renaming `totalPosts` or the forum's `total` in the listener fails `RouteTest` with the same
-`ErrorException` a live page would throw. For `SecretsDeclarationTest`: declaring a second add-on's
-id, declaring an option that does not exist, claiming a `config.php` key, and adding an undeclared
-option whose name contains `ApiKey` each fail one test, a different one each time. Copy the file
-aside and back to repeat one — `git checkout` would also discard uncommitted work.
+`ErrorException` a live page would throw, and so does misreading `totalItems` or `totalResults`.
+Renaming the listener method, so that the registration points at nothing, fails every `RouteTest`
+dispatch; adding one to the search count, or ignoring `watchedForums`, fails that page's test; a new
+`case` in the switch fails the accounting test. For `SecretsDeclarationTest`: declaring a second
+add-on's id, declaring an option that does not exist, claiming a `config.php` key, and adding an
+undeclared option whose name contains `ApiKey` each fail one test, a different one each time;
+renaming its method fails the test that has XenForo fire the event. Copy the file aside and back to
+repeat one — `git checkout` would also discard uncommitted work.
 
 ### A new XenForo release, before installing it
 

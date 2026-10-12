@@ -21,8 +21,14 @@ abstract class TestCase extends BaseTestCase
 	 *
 	 * Only those addons are loaded, which keeps other addons' class extensions, code event
 	 * listeners and Composer autoloading out of these tests.
+	 *
+	 * XenForo Media Gallery and Resource Manager are loaded too, because the listener handles
+	 * their pages and RouteTest dispatches them. They are named here for every test class rather
+	 * than only for that one: a class extension cannot be added to a class an earlier test in the
+	 * same process has already resolved without it, so widening the list for one class fails in a
+	 * full run and passes alone. An id that is not installed matches nothing and is harmless.
 	 */
-	protected $addonsToLoad = ['Hampel/ItemsThisPage'];
+	protected $addonsToLoad = ['Hampel/ItemsThisPage', 'XFMG', 'XFRM'];
 
 	protected function getMockData($file)
 	{

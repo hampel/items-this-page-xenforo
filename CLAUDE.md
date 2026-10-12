@@ -111,10 +111,16 @@ vendor/bin/phpunit --filter testItemsPerPage       # one test
 `tests/TestCase.php`'s relative `$rootDir` of `../../../..`, so the suite needs a working install
 around it and fails from anywhere else.
 
-**`$addonsToLoad` limits the boot to this add-on, and the suite does not run without it.** Other
-installed add-ons can vendor their own PHPUnit through `composer_autoload`; unisolated, that copy
-wins on the class loader and the run dies before the first test with an error about PHPUnit
-internals.
+**`$addonsToLoad` limits the boot to this add-on, XFMG and XFRM, and the suite does not run
+without it.** Other installed add-ons can vendor their own PHPUnit through `composer_autoload`;
+unisolated, that copy wins on the class loader and the run dies before the first test with an error
+about PHPUnit internals.
+
+**XFMG and XFRM are loaded for every test class, not only the one that dispatches their pages.** A
+class extension cannot be added to a class that an earlier test in the same process has already
+resolved without it. So a single class widening the list passes alone and, in a full run, dies with
+`Call to undefined method XF\Entity\User::canViewMedia()`. Keep the list identical across classes.
+An id that is not installed matches nothing, so the list is safe on a forum without them.
 
 There are five test classes, and they prove different things:
 
@@ -123,11 +129,15 @@ There are five test classes, and they prove different things:
   group of templates, plus the guards that must leave the variable unset. Its `setUp()` calls
   `setAppClassType('public')`: the framework boots `XF\App`, and without that the listener's
   `instanceof \XF\Pub\App` guard skips every case.
-- **`RouteTest`** dispatches real forum and thread pages against the install's data and checks the
-  listener's answer against the threads or posts the reply carries. **It is the only test that
-  fails when XenForo renames a view param** — with the same `ErrorException` a live page would
-  throw. It skips on an install without the data, and runs inside `UsesDatabaseTransactions`
-  because viewing a thread logs a view.
+- **`RouteTest`** dispatches real pages against the install's data — 32 of the 39 templates — and
+  checks the count against the list the reply carries. It never calls the listener: it asks
+  XenForo for the reply's global template data, so `templater_global_data` fires for real. **It is
+  the only test that fails when the listener is not registered, or when XenForo renames a view
+  param** — the second with the same `ErrorException` a live page would throw. It skips where the
+  install lacks the data, and runs inside `UsesDatabaseTransactions`, because viewing a thread logs
+  a view and a search, a What's New page and a tag all write rows.
+  **`test_every_template_in_the_switch_is_accounted_for` fails when a case is added to the listener
+  and neither dispatched nor listed in `NOT_DISPATCHED` with a reason.**
 - **`SwitchTemplatesTest`** requires every template named in the switch to exist among the
   installed master templates, reading the names out of `Listener.php`. **It is the only test that
   fails when XenForo, XFMG or XFRM renames a template**, and it only knows the versions installed
@@ -135,8 +145,14 @@ There are five test classes, and they prove different things:
 - **`SecretsDeclarationTest`** holds the secrets declaration against `_output/options/`. It passes
   trivially while the add-on has no options, and exists for the day it gains one.
 
-XFMG and XFRM pages are covered only by `TemplateSwitchTest`: `$addonsToLoad` keeps those add-ons'
-routes out of the suite.
+**An empty page proves less than a full one.** Where the install has no media or resources the
+XFMG and XFRM pages dispatch, the count is 0 and so is the list: that shows the view params exist
+under the names the listener reads, and nothing about the arithmetic. `TemplateSwitchTest` covers
+the arithmetic for every group; `TESTING.md` has the rendered check with content in place.
+
+Seven templates are not dispatched at all, each needing content the suite cannot make inside a
+rolled-back transaction: question and suggestion forums and their threads, a poll thread, a media
+item's own page, and a resource's discussion thread. `RouteTest::NOT_DISPATCHED` is the list.
 
 ## Release packaging
 

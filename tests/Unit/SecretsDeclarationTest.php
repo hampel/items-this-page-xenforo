@@ -93,6 +93,32 @@ class SecretsDeclarationTest extends TestCase
 		$this->assertSame([], $this->declared()['config']);
 	}
 
+	/**
+	 * The tests above call the method. This one has XenForo call it, so it fails if the listener
+	 * is not registered for the event, or is registered with the wrong class or method.
+	 */
+	public function test_xenforo_calls_it_when_the_event_fires()
+	{
+		$registered = $this->app()->db()->fetchOne(
+			"SELECT COUNT(*) FROM xf_code_event_listener
+				WHERE event_id = 'hampel_admin_api_redaction' AND addon_id = 'Hampel/ItemsThisPage' AND active = 1"
+		);
+
+		if (!$registered)
+		{
+			$this->markTestSkipped(
+				'the listener is not in this install - run xf-dev:import for the add-on, or reinstall'
+				. ' the add-on that defines the event, which removes its listeners when uninstalled'
+			);
+		}
+
+		$declarations = [];
+		$this->app()->fire('hampel_admin_api_redaction', [&$declarations]);
+
+		$this->assertArrayHasKey('Hampel/ItemsThisPage', $declarations);
+		$this->assertSame([], $declarations['Hampel/ItemsThisPage']);
+	}
+
 	private function declarations(): array
 	{
 		$declarations = [];
