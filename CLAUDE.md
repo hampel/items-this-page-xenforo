@@ -75,6 +75,18 @@ php ../../../../cmd.php xf-addon:build-release Hampel/ItemsThisPage   # release 
 overwrites `_output/` from the database. `xf-addon:export` is the scoped equivalent, and
 `build-release` runs it itself.
 
+### There is no `config` or `validate` command, on purpose
+
+**The add-on has nothing a self-check command could report** (decided 2026-10-12). It has no
+settings, so nothing is opaque and there is nothing to print; and it does no unattended work, since
+it only runs while a page renders. Every command an add-on defines appears in `cmd.php list` on
+every forum that installs it, so one with nothing to say should not add any.
+
+Its one silent failure is a template renamed by a XenForo, XFMG or XFRM release. That depends on
+the version installed, not on how a forum is set up, so every forum on one version gets the same
+answer: it is checked by `SwitchTemplatesTest` and by the release-zip sweep in `TESTING.md`, not by
+a command. **Reopen this if the add-on gains an option, a credential, a cron entry or a job.**
+
 ### Tests
 
 PHPUnit 12 via `hampel/xenforo-test-framework` ^5.9. Composer is for the tests only — the add-on
