@@ -89,7 +89,7 @@ a command. **Reopen this if the add-on gains an option, a credential, a cron ent
 
 ### Tests
 
-PHPUnit 12 via `hampel/xenforo-test-framework` ^5.9. Composer is for the tests only — the add-on
+PHPUnit 12 via `hampel/xenforo-test-framework` ^5.25. Composer is for the tests only — the add-on
 has no runtime dependency, and `vendor/` is gitignored. **The suite needs PHP 8.3; that constraint
 is `tests/` only.** Runtime code still has the PHP 7.0 floor above.
 
@@ -118,9 +118,10 @@ about PHPUnit internals.
 
 **XFMG and XFRM are loaded for every test class, not only the one that dispatches their pages.** A
 class extension cannot be added to a class that an earlier test in the same process has already
-resolved without it. So a single class widening the list passes alone and, in a full run, dies with
-`Call to undefined method XF\Entity\User::canViewMedia()`. Keep the list identical across classes.
-An id that is not installed matches nothing, so the list is safe on a forum without them.
+resolved without it. From framework 5.25 a class whose list adds such an extension is refused in
+`setUp()`, with a `LogicException` naming the class and the extension; before that it passed
+alone and, in a full run, died with `Call to undefined method XF\Entity\User::canViewMedia()`. Keep the one list in `tests/TestCase.php`. An id that is not
+installed matches nothing, so the list is safe on a forum without them.
 
 There are five test classes, and they prove different things:
 
@@ -131,7 +132,8 @@ There are five test classes, and they prove different things:
   `instanceof \XF\Pub\App` guard skips every case.
 - **`RouteTest`** dispatches real pages against the install's data — 32 of the 39 templates — and
   checks the count against the list the reply carries. It never calls the listener: it asks
-  XenForo for the reply's global template data, so `templater_global_data` fires for real. **It is
+  XenForo for the reply's global template data, through the framework's `globalTemplateData()`,
+  so `templater_global_data` fires for real. **It is
   the only test that fails when the listener is not registered, or when XenForo renames a view
   param** — the second with the same `ErrorException` a live page would throw. It skips where the
   install lacks the data, and runs inside `UsesDatabaseTransactions`, because viewing a thread logs

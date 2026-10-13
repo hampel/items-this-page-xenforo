@@ -131,11 +131,7 @@ class RouteTest extends TestCase
 
 		if ($reply instanceof Redirect)
 		{
-			$path = ltrim(preg_replace('#^[^?]*\?#', '', $reply->getUrl()), '/');
-			[$route, $query] = array_pad(explode('&', $path, 2), 2, '');
-			parse_str($query, $input);
-
-			$reply = $this->dispatch($route, 'public', $input);
+			$reply = $this->followRedirect($reply);
 		}
 
 		return $reply;
@@ -146,7 +142,7 @@ class RouteTest extends TestCase
 	 */
 	protected function itemsThisPage(AbstractReply $reply)
 	{
-		$data = \XF::app()->getGlobalTemplateData($reply);
+		$data = $this->globalTemplateData($reply);
 
 		$this->assertArrayHasKey('itemsThisPage', $data, 'XenForo did not get itemsThisPage for this reply');
 		$this->assertIsInt($data['itemsThisPage']);
