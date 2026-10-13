@@ -45,8 +45,10 @@ first handled and the rest known and accepted:
   already exclude most of what a visitor cannot see, so this is rare.
 - `find-threads/` does not reject a page number past the end, so such a page renders no threads and
   still reports a count.
-- On article and question threads, the pinned first post and highlighted posts shown on later pages
-  are fetched separately and are not in `totalPosts`.
+- On article, question and suggestion threads, the pinned first post and highlighted posts shown on
+  later pages are fetched separately and are not in `totalPosts`. Seen on a rendered page in
+  XenForo 2.3.13: from page 2 on, a question or suggestion thread prints one fewer than the
+  messages in its HTML.
 
 **`news_feed` passes a plain empty array when the visitor follows nobody.** The collection check
 fails and the variable is 0, which is correct.
@@ -162,33 +164,41 @@ so run it only on a throwaway XenForo with development mode off.
    written; the event is never fired, and the forum must render as before.
 3. Make the content: a forum with one sticky thread and at least six others, a thread with four
    replies, and, where they are installed, a few resources in a Resource Manager category and a
-   few media items in a Media Gallery category and a public album. Make it through XenForo's own
-   services or a seeding tool, never by inserting rows. Set `discussionsPerPage` and
-   `messagesPerPage` to 2.
+   few media items in a Media Gallery category and a public album. On XenForo 2.3 add a question
+   forum and a suggestion forum with a thread of several replies in each, a poll thread, a
+   resource with a discussion thread, and a media item with five comments. Make it through
+   XenForo's own services or a seeding tool, never by inserting rows. Set `discussionsPerPage`,
+   `messagesPerPage` and, with Media Gallery, `xfmgCommentsPerPage` to 2.
 4. Add a public template modification on `PAGE_CONTAINER`: `str_replace`, find `</body>`, replace
    `<!--ITP[{$xf.itemsThisPage}]-->$0`. Run the job queue so the template recompiles.
-5. Fetch each route as a guest. Read the number between `ITP[` and `]`, and count the items in the
-   same page's HTML. **The two must be equal on every page**, which needs no expected numbers:
+5. Fetch each route as a guest, following the redirect to its canonical address. Read the number
+   between `ITP[` and `]`, and count the items in the same page's HTML. **The two must be equal on
+   every page**, which needs no expected numbers:
 
 | page | count this in the HTML |
 |---|---|
 | a forum, and What's New posts | `class="structItem structItem--thread` |
-| a thread | `<article class="message message--post` |
+| a thread of any type | `<article class="message message--post` |
+| a media item's own page | `<article class="message message--simple` |
 | the resource overview, a resource category, What's New resources | `class="structItem structItem--resource` |
 | the media index, a media category, What's New media | `class="itemList-item js-inlineModContainer` |
 
 The forum with the sticky thread must read one more on page 1 than the page size, and the page
 size or less after it. `help/`, which is not in the switch, must print nothing between the
-brackets. No page may contain `Fatal error:`, `Stack trace:` or `An exception occurred`.
+brackets. **A question or suggestion thread is the one exception to equal**: from page 2 on its
+HTML holds one more message than the count, the pinned first post, as *Fragile points* records. No
+page may contain `Fatal error:`, `Stack trace:` or `An exception occurred`.
 
 **Run for 1.1.4, upgrading from 1.1.1**, on XenForo 2.2.19 with Media Gallery 2.2.6 and Resource
 Manager 2.2.5, and on XenForo 2.3.13 with both at 2.3.13. The upgrade took the real path on both,
 both listeners were registered, and nothing was logged. Printed count and HTML count, equal on
-every page:
+every page but the two noted. The 2.3.13 sticky forum, the media item with comments and the last
+five rows were run on 2026-10-13 from a fresh install of 1.1.4, when a seeding tool could first
+make that content:
 
 | page | XenForo 2.2.19 | XenForo 2.3.13 |
 |---|---|---|
-| forum with a sticky thread, pages 1 to 3 | 3, 2, 2 | not run: no sticky thread in the content |
+| forum with a sticky thread, pages 1 to 3 | 3, 2, 2 | 3, on a forum of one sticky and two others |
 | forum without one, pages 1 and 2 | — | 2, 1 |
 | thread, first, middle and last page | 2, 2, 1 | 2, 2 and, on a five-post thread, 1 |
 | current visitors | 1 | 1 |
@@ -198,7 +208,12 @@ every page:
 | media index | 0, an empty gallery | 8 |
 | media category | — | 5 |
 | album index | — | 1 |
-| a media item's own page | — | 0: the item had no comments |
+| a media item's own page | — | 0 with no comments; 2, 2, 1 with five |
+| question forum, suggestion forum | — | 2, 2 |
+| poll thread of five posts, pages 1 to 3 | — | 2, 2, 1 |
+| question thread of six posts, pages 1 to 3 | — | 2, 2, 2, with 2, 3, 3 messages in the HTML |
+| suggestion thread of three posts, pages 1 and 2 | — | 2, 1, with 2, 2 messages in the HTML |
+| a resource's discussion thread | — | 1 |
 | What's New: posts, media, resources | 2, —, — | 2, 7, 5 |
 | `help/` | nothing printed | nothing printed |
 
@@ -207,17 +222,6 @@ on 2.3 the post-upgrade clean-up removes the file and leaves the empty directory
 
 ## Needs a human
 
-**Nothing here needs a person to look at a page, and five kinds of page have still not been seen
-with content in them.** The count is a number, so every check on it is mechanical: the suite
-dispatches 32 of the 39 templates, and the disposable-install check above reads the printed number
-against the HTML. What is missing is content, not judgement. Each of these is covered by
-`TemplateSwitchTest` with a reply built in memory and by nothing else, and each wants adding to the
-disposable-install check when the content can be made:
-
-- [ ] A question forum and a suggestion forum, and a thread in each.
-- [ ] A thread with a poll.
-- [ ] A media item with comments: its page counts the comments, and has only been seen with none.
-- [ ] A resource's discussion thread, which Resource Manager makes when the resource's category
-      names a forum.
-- [ ] A forum with a sticky thread on XenForo 2.3. The suite covers it there on a real reply, and
-      the rendered check covers it on 2.2; the 2.3 rendered page has not been fetched.
+**Nothing.** The count is a number, so every check on it is mechanical: the suite dispatches 32 of
+the 39 templates, and the disposable-install check above reads the printed number against the
+HTML, on pages that include all seven templates the suite cannot dispatch.
