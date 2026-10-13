@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1.4 (2026-10-13)
+
+- answer the `hampel_admin_api_redaction` code event to declare that the add-on has no settings and so no secrets — this adds no dependency, and does nothing on a forum where no add-on defines that event
+
 ## 1.1.3 (2026-09-28)
 
 - `$xf.itemsThisPage` now includes sticky threads on the first page of a forum — they are shown in addition to the paginated threads, so page 1 was short by the number of stickies
